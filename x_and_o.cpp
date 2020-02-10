@@ -16,6 +16,8 @@ bool validMove(int row, int col);
 void input(int row, int col);
 void checkGameState();
 void endGame();
+int computersMove();
+void sleep(int);
 
 
 int main(){
@@ -31,11 +33,20 @@ int main(){
 
         do{
 
-            cout <<" *** " <<(curPlayer ? "X" : "O") <<"'s Chance ***";
-            cout <<"\nEnter row = ";
-            cin >> row;
-            cout <<"Enter col = ";
-            cin >> col;
+            cout <<" *** " <<(curPlayer ? "X" : "Computer's") <<"'s Chance ***" <<flush;
+
+            if( curPlayer){
+                cout <<"\nEnter row = ";
+                cin >> row;
+                cout <<"Enter col = ";
+                cin >> col;
+            }
+            else {
+                sleep(800);
+                int temp = computersMove();
+                row = temp / 3;
+                col = temp % 3;
+            }
 
             if( validMove(row, col) ){
                 input(row, col);
@@ -60,8 +71,10 @@ int main(){
 void initializeGame(){
 
     movesPlayed = 0;
-    curPlayer = true;
     gameFinished = false;
+
+    srand(time(NULL));
+    curPlayer = (rand() % 2);
 
     free(matrix);
     matrix = new int[9];
@@ -95,9 +108,11 @@ void displayMatrix(){
 
 // check if an input move is valid or not
 bool validMove(int row, int col){
+
     return ( row >= 0 && row <= 2 &&
         col >=0 && col <= 2 &&
         matrix[row * 3 + col] == 0 );
+
 }
 
 
@@ -177,8 +192,35 @@ void endGame(){
             cout << "\n\nPlayer X won\n\n";
             break;
         case 2:
-            cout << "\n\nPlayer O won\n\n";
+            cout << "\n\nComputer won\n\n";
             break;
     }
+
+}
+
+
+// generate move for computer
+int computersMove(){
+
+    srand(clock());
+    int temp;
+    do {
+        temp = rand() % 9;
+    }while (! validMove(temp / 3, temp % 3));
+
+    return temp;
+
+}
+
+
+void sleep(int miliSeconds){
+
+    clock_t start = clock();
+    clock_t end;
+    clock_t CLOCKS_PER_MILI_SEC = CLOCKS_PER_SEC / 1000;
+
+    do{
+        end = clock();
+    }while((end - start) < (miliSeconds * CLOCKS_PER_MILI_SEC));
 
 }
