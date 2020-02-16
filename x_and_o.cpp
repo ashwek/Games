@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
+#include <vector>
 
 using namespace std;
 
@@ -14,9 +15,10 @@ void initializeGame();
 void displayMatrix();
 bool validMove(int row, int col);
 void input(int row, int col);
-void checkGameState();
+int checkGameState();
 void endGame();
 int computersMove();
+vector<int> minimax(bool, int);
 void sleep(int);
 
 
@@ -35,17 +37,21 @@ int main(){
 
             cout <<" *** " <<(curPlayer ? "X" : "Computer's") <<"'s Chance ***" <<flush;
 
-            if( curPlayer){
+            if( curPlayer ){
                 cout <<"\nEnter row = ";
                 cin >> row;
                 cout <<"Enter col = ";
                 cin >> col;
             }
             else {
-                sleep(800);
                 int temp = computersMove();
                 row = temp / 3;
                 col = temp % 3;
+                cout <<"\nEnter row = " <<flush;
+                sleep(600);
+                cout <<row <<"\nEnter col = " <<flush;
+                sleep(600);
+                cout <<col <<"\n" <<flush;
             }
 
             if( validMove(row, col) ){
@@ -57,6 +63,15 @@ int main(){
             }
 
         }while( 1 );
+
+        int result = checkGameState();
+        if( result != -1 ){
+            gameFinished = true;
+            endStatus = result;
+        }
+        else {
+            curPlayer = ! curPlayer;
+        }
 
     }
 
@@ -121,28 +136,20 @@ void input(int row, int col){
     movesPlayed++;
     matrix[row * 3 + col] = (curPlayer ? 1 : 2);
 
-    checkGameState();
-
-    if( ! gameFinished ){
-        curPlayer = ! curPlayer;
-    }
-
 }
 
 
 // check if someone has won the game or not
-void checkGameState(){
+int checkGameState(){
 
     if( movesPlayed <= 4 )
-        return;
+        return -1;
 
     // check rows
     for(int r = 0; r < 9; r += 3){
         if( matrix[r] != 0 &&
             matrix[r] == matrix[r + 1] && matrix[r] == matrix[r + 2] ){
-                gameFinished = true;
-                endStatus = matrix[r];
-                return;
+                return matrix[r];
             }
     }
 
@@ -150,39 +157,37 @@ void checkGameState(){
     for(int c = 0; c < 3; c++){
         if( matrix[c] != 0 &&
             matrix[c] == matrix[c + 3] && matrix[c] == matrix[c + 6] ){
-                gameFinished = true;
-                endStatus = matrix[c];
-                return;
+                return matrix[c];
             }
     }
 
     // check diagonal 1
     if( matrix[0] != 0 &&
         matrix[0] == matrix[4] && matrix[0] == matrix[8] ){
-            gameFinished = true;
-            endStatus = matrix[0];
-            return;
+            return matrix[0];
     }
 
     // check diagonal 2
     if( matrix[2] != 0 &&
         matrix[2] == matrix[4] && matrix[2] == matrix[6] ){
-            gameFinished = true;
-            endStatus = matrix[2];
-            return;
+            return matrix[2];
     }
 
     // check draw
     if( movesPlayed == 9){
-        gameFinished = true;
-        endStatus = 0;
+        return 0;
     }
+
+    return -1;
 
 }
 
 
 // end message
 void endGame(){
+
+    system("clear");
+    displayMatrix();
 
     switch( endStatus ){
         case 0:
@@ -202,13 +207,61 @@ void endGame(){
 // generate move for computer
 int computersMove(){
 
-    srand(clock());
     int temp;
-    do {
+
+    if( movesPlayed == 0 ){
+        srand(clock());
         temp = rand() % 9;
-    }while (! validMove(temp / 3, temp % 3));
+    }
+    else {
+        vector<int> result = minimax(curPlayer, 10);
+        temp = result[1];
+    }
 
     return temp;
+
+}
+
+
+vector<int> minimax(bool currentSimulatedPlayer, int depth) {
+
+    vector<int> finalResult;
+
+    for(int i = 0; i < 9; i++){
+
+        if( matrix[i] != 0 ) continue;
+
+        matrix[i] = (currentSimulatedPlayer ? 1 : 2);
+        movesPlayed++;
+
+        int result = checkGameState();
+        vector<int> tempResult = vector<int>(2);
+
+        if( result == -1 ) {
+            tempResult = minimax(!currentSimulatedPlayer, depth - 1);
+        }
+        else {
+            if( result == 0 ) tempResult[0] = 0;
+            else tempResult[0] = depth * ((currentSimulatedPlayer == curPlayer) ? 1 : -1);
+        }
+        tempResult[1] = i;
+
+        if( finalResult.size() <= 0 )
+            finalResult = tempResult;
+
+        if( curPlayer == currentSimulatedPlayer){
+            finalResult = ( finalResult[0] < tempResult[0]) ? tempResult : finalResult;
+        }
+        else {
+            finalResult = ( finalResult[0] > tempResult[0]) ? tempResult : finalResult;
+        }
+
+        matrix[i] = 0;
+        movesPlayed--;
+
+    }
+
+    return finalResult;
 
 }
 
