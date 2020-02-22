@@ -95,7 +95,15 @@ void MainWindow::on_resetButton_clicked() {
 
 void MainWindow::on_solveButton_clicked() {
 
+    clock_t start = clock();
+
     bruteForce(0, 0);
+
+    clock_t end = clock();
+
+    ui->solveTime->setText("Solved in\n" +
+                           QString::number(((float)(end - start)) / CLOCKS_PER_SEC) +
+                           "\nseconds");
 
     activeButton = -1;
 
