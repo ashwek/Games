@@ -294,18 +294,20 @@ std::vector<int> MainWindow::minimax(bool currentSimulatedPlayer, int depth) {
         }
         tempResult[1] = i;
 
+        matrix[i] = 0;
+        movesPlayed--;
+
         if( finalResult.size() <= 0 )
             finalResult = tempResult;
 
         if( curPlayer == currentSimulatedPlayer){
             finalResult = ( finalResult[0] < tempResult[0]) ? tempResult : finalResult;
+            if( finalResult[0] == depth ) break;
         }
         else {
             finalResult = ( finalResult[0] > tempResult[0]) ? tempResult : finalResult;
+            if( finalResult[0] == -depth ) break;
         }
-
-        matrix[i] = 0;
-        movesPlayed--;
 
     }
 
